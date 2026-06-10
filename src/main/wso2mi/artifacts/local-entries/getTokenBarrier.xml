@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="getTokenBarrier" xmlns="http://ws.apache.org/ns/synapse">
+  <http.init>
+    <connectionType>HTTPS</connectionType>
+    <baseUrl>https://idcs-248822e8f64d40e4b16b517da502df07.identity.oraclecloud.com/oauth2/v1/token</baseUrl>
+    <certificateConfigurable/>
+    <authType>None</authType>
+    <timeoutDuration/>
+    <timeoutAction>Never</timeoutAction>
+    <retryErrorCodes/>
+    <retryCount>0</retryCount>
+    <retryDelay>0</retryDelay>
+    <suspendErrorCodes/>
+    <suspendInitialDuration>-1</suspendInitialDuration>
+    <suspendProgressionFactor>1</suspendProgressionFactor>
+    <suspendMaximumDuration/>
+    <name>getTokenBarrier</name>
+  </http.init>
+</localEntry>

@@ -1,0 +1,10 @@
+---
+key: "TestRedis-1.0.0"
+name : "TestRedis"
+displayName : "TestRedis"
+description: "TestRedis"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/testredis"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

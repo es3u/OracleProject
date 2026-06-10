@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="RedisLocal" xmlns="http://ws.apache.org/ns/synapse">
+  <redis.init>
+    <connectionType>REDIS</connectionType>
+    <redisHost>localhost</redisHost>
+    <redisPort>6379</redisPort>
+    <maxConnections/>
+    <maxIdleConnections/>
+    <maxWaitTime/>
+    <evictionCheckInterval/>
+    <minEvictionTime/>
+    <exhaustedAction/>
+    <name>RedisLocal</name>
+  </redis.init>
+</localEntry>

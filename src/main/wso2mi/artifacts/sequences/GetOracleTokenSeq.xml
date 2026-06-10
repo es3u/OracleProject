@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="GetOracleTokenSeq" xmlns="http://ws.apache.org/ns/synapse">
+
+    <!-- 1. إضافة Basic Authorization Header الخاص بطلب Oracle Token -->
+    <header name="Authorization" action="set" scope="transport"
+            value="Basic ZWEyOWM3ODYxMGNmNGYzZjg2ZmEwOWU5OTE0MDU0NjA6NWFlNzYwY2QtYmM4MS00YzIzLTk2MTQtZTRiYWMwZTM2ZWM4"/>
+
+    <!-- 2. منع تقطيع البيانات ومنع تكرار مسار الرابط  -->
+    <property name="DISABLE_CHUNKING" value="true" scope="axis2" type="STRING"/>
+    <property name="REST_URL_POSTFIX" scope="axis2" action="remove"/>
+
+    <!-- 3. بناء البيانات كـ XML نظيف خالي من الـ Namespaces -->
+    <payloadFactory media-type="xml">
+        <format>
+            <xform xmlns="">
+                <grant_type>client_credentials</grant_type>
+                <scope>https://9A53BD9222974199AA3CBC411AD0AD2D.integration.me-jeddah-1.ocp.oraclecloud.com:443urn:opc:resource:consumer::all https://9A53BD9222974199AA3CBC411AD0AD2D.integration.me-jeddah-1.ocp.oraclecloud.com:443/ic/api/</scope>
+            </xform>
+        </format>
+        <args/>
+    </payloadFactory>
+
+    <!-- 4. توجيه WSO2 لتحويل الـ XML أعلاه إلى Form Data بشكل آلي -->
+    <property name="messageType" scope="axis2" type="STRING" value="application/x-www-form-urlencoded"/>
+    <property name="ContentType" scope="axis2" type="STRING" value="application/x-www-form-urlencoded"/>
+
+    <!-- 5. لوق للتأكد أن body التوكن انبنى قبل استدعاء Oracle -->
+    <log category="INFO" logMessageID="false" logFullPayload="true">
+        <message> token body after payloadFactory and before http.post</message>
+    </log>
+
+    <!-- 6. استدعاء Oracle Token API الخارجي -->
+    <http.post configKey="get_token_barrier">
+        <relativePath></relativePath>
+        <headers>[]</headers>
+        <forceScAccepted>false</forceScAccepted>
+        <disableChunking>true</disableChunking>
+        <forceHttp10>false</forceHttp10>
+        <noKeepAlive>false</noKeepAlive>
+        <forcePostPutNobody>false</forcePostPutNobody>
+        <responseVariable>token_api_response</responseVariable>
+        <overwriteBody>true</overwriteBody>
+    </http.post>
+
+    <!-- 7. لوق للتأكد أن Oracle رجع response وفيه access_token -->
+    <log category="INFO" logMessageID="false" logFullPayload="true">
+        <message>token response after Oracle token call</message>
+    </log>
+
+</sequence>
+

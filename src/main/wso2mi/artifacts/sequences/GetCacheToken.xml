@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="GetCacheToken" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+
+    <!-- 1. حفظ body الأصلي حق EmployeeDetails قبل ما نطلب التوكن -->
+    <property name="ORIGINAL_EMPLOYEE_BODY" expression="json-eval($)" scope="default" type="STRING"/>
+
+    <!-- 
+        <redis.get configKey="RedisLocal">
+            <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
+        </redis.get>
+
+        <log category="INFO" logMessageID="false" logFullPayload="true">
+            <message>Redis GET token result</message>
+        </log>
+    -->
+
+    <!-- 2. التحقق من وجود التوكن في Java Cache -->
+    <class name="com.example.token.TokenCacheMediator">
+        <property name="action" value="CHECK"/>
+    </class>
+
+    <!-- 3. إذا التوكن موجود نستخدمه، وإذا غير موجود نجيب توكن جديد -->
+    <filter xpath="get-property('TOKEN_CACHE_STATUS') = 'HIT'">
+        <then>
+
+            <log category="INFO" logMessageID="false" logFullPayload="false">
+                <message>Token cache HIT</message>
+                <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
+                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+            </log>
+
+        </then>
+
+        <else>
+
+            <log category="INFO" logMessageID="false" logFullPayload="false">
+                <message>Token cache MISS. Fetching new token from Oracle</message>
+                <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
+            </log>
+
+            <!-- 4. استدعاء sequence الخاصة بجلب Oracle Token -->
+            <sequence key="GetOracleTokenSeq"/>
+
+            <!-- 5. استخراج access_token من response حق Oracle Token -->
+            <property name="ACCESS_TOKEN" scope="default" type="STRING" expression="json-eval($.access_token)"/>
+
+            <log category="INFO" logMessageID="false" logFullPayload="false">
+                <message>New Oracle token extracted</message>
+                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+            </log>
+
+            <!-- 6. حفظ التوكن في Java Cache -->
+            <class name="com.example.token.TokenCacheMediator">
+                <property name="action" value="SAVE"/>
+            </class>
+
+            <log category="INFO" logMessageID="false" logFullPayload="false">
+                <message>New Oracle token saved in Java cache</message>
+                <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
+                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+            </log>
+
+        </else>
+    </filter>
+
+    <!-- 7. تجهيز Authorization Header لاستدعاء Oracle API -->
+    <header name="Authorization" action="set" scope="transport"
+            expression="fn:concat('Bearer ', $ctx:ACCESS_TOKEN)"/>
+
+    <!-- 8. إرجاع body الأصلي حق EmployeeDetails بعد الانتهاء من التوكن -->
+    <payloadFactory media-type="json">
+        <format>$1</format>
+        <args>
+            <arg evaluator="xml" expression="$ctx:ORIGINAL_EMPLOYEE_BODY"/>
+        </args>
+    </payloadFactory>
+
+    <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+    <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
+
+    <log category="INFO" logMessageID="false" logFullPayload="true">
+        <message>Employee request body restored after token handling</message>
+    </log>
+
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>Oracle Authorization header prepared</message>
+        <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
+        <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+    </log>
+
+</sequence>
+

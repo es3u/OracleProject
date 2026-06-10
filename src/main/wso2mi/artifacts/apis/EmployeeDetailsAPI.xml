@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api name="EmployeeDetailsAPI" context="/employee-details" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/">
+        <inSequence>
+
+            <sequence key="GetCacheToken"/>
+
+            <log category="INFO" logMessageID="false" logFullPayload="true">
+                <message>EmployeeDetails request body before calling Oracle API</message>
+            </log>
+
+            <header name="Content-Type" value="application/json" scope="transport"/>
+
+            <http.post configKey="EmpDetailsAPI">
+                <relativePath></relativePath>
+                <headers>[]</headers>
+                <requestBodyType>JSON</requestBodyType>
+                <requestBodyJson>${payload}</requestBodyJson>
+                <forceScAccepted>false</forceScAccepted>
+                <disableChunking>false</disableChunking>
+                <forceHttp10>false</forceHttp10>
+                <noKeepAlive>false</noKeepAlive>
+                <forcePostPutNobody>false</forcePostPutNobody>
+                <responseVariable>employee_details_response</responseVariable>
+                <overwriteBody>true</overwriteBody>
+            </http.post>
+
+            <respond/>
+
+        </inSequence>
+
+        <faultSequence/>
+    </resource>
+</api>
+

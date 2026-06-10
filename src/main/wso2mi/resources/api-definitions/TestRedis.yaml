@@ -1,0 +1,14 @@
+openapi: 3.0.1
+info:
+  title: TestRedis
+  description: API Definition of TestRedis
+  version: 1.0.0
+servers:
+- url: http://localhost:8290/testredis
+- url: https://localhost:8253/testredis
+paths:
+  /:
+    get:
+      responses:
+        default:
+          description: Default response
