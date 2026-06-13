@@ -1,0 +1,10 @@
+---
+key: "API3Fetch_Manager-1.0.0"
+name : "API3Fetch_Manager"
+displayName : "API3Fetch_Manager"
+description: "API3Fetch_Manager"
+version: "1.0.0"
+serviceUrl: "https://{MI_HOST}:{MI_PORT}/fetch_manager"
+definitionType: "OAS3"
+securityType: "BASIC"
+mutualSSLEnabled: false

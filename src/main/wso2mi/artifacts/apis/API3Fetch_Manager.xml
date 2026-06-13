@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<api name="EmployeeDetailsAPI" context="/employee-details" xmlns="http://ws.apache.org/ns/synapse">
+<api context="/fetch_manager" name="API3Fetch_Manager" xmlns="http://ws.apache.org/ns/synapse">
     <resource methods="POST" uri-template="/">
         <inSequence>
             <sequence key="GetCacheToken"/>
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>EmployeeDetails request body before calling Oracle API</message>
-            </log>
-
-            <header name="Content-Type" value="application/json" scope="transport"/>
-
-            <http.post configKey="EmpDetailsAPI">
+            <header name="content-type" action="set" scope="transport" value="application/json"/>
+            <http.post configKey="API3">
                 <relativePath></relativePath>
                 <headers>[]</headers>
                 <requestBodyType>JSON</requestBodyType>
@@ -19,14 +14,12 @@
                 <forceHttp10>false</forceHttp10>
                 <noKeepAlive>false</noKeepAlive>
                 <forcePostPutNobody>false</forcePostPutNobody>
-                <responseVariable>employee_details_response</responseVariable>
+                <responseVariable>http_post_1</responseVariable>
                 <overwriteBody>true</overwriteBody>
             </http.post>
-
             <respond/>
         </inSequence>
-
-        <faultSequence/>
+        <faultSequence>
+        </faultSequence>
     </resource>
 </api>
-

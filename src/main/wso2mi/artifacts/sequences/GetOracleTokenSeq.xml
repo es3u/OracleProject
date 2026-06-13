@@ -2,8 +2,7 @@
 <sequence name="GetOracleTokenSeq" xmlns="http://ws.apache.org/ns/synapse">
 
     <!-- 1. إضافة Basic Authorization Header الخاص بطلب Oracle Token -->
-    <header name="Authorization" action="set" scope="transport"
-            value="Basic ZWEyOWM3ODYxMGNmNGYzZjg2ZmEwOWU5OTE0MDU0NjA6NWFlNzYwY2QtYmM4MS00YzIzLTk2MTQtZTRiYWMwZTM2ZWM4"/>
+    <header name="Authorization" action="set" scope="transport" value="Basic ZWEyOWM3ODYxMGNmNGYzZjg2ZmEwOWU5OTE0MDU0NjA6NWFlNzYwY2QtYmM4MS00YzIzLTk2MTQtZTRiYWMwZTM2ZWM4"/>
 
     <!-- 2. منع تقطيع البيانات ومنع تكرار مسار الرابط  -->
     <property name="DISABLE_CHUNKING" value="true" scope="axis2" type="STRING"/>
@@ -25,10 +24,9 @@
     <property name="ContentType" scope="axis2" type="STRING" value="application/x-www-form-urlencoded"/>
 
     <!-- 5. لوق للتأكد أن body التوكن انبنى قبل استدعاء Oracle -->
-    <log category="INFO" logMessageID="false" logFullPayload="true">
+    <log category="INFO" logMessageID="false" logFullPayload="false">
         <message> token body after payloadFactory and before http.post</message>
     </log>
-
     <!-- 6. استدعاء Oracle Token API الخارجي -->
     <http.post configKey="get_token_barrier">
         <relativePath></relativePath>
@@ -41,11 +39,9 @@
         <responseVariable>token_api_response</responseVariable>
         <overwriteBody>true</overwriteBody>
     </http.post>
-
     <!-- 7. لوق للتأكد أن Oracle رجع response وفيه access_token -->
-    <log category="INFO" logMessageID="false" logFullPayload="true">
+    <log category="INFO" logMessageID="false" logFullPayload="false">
         <message>token response after Oracle token call</message>
     </log>
-
 </sequence>
 

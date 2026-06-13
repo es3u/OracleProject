@@ -14,18 +14,18 @@
                 <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
             </log>
 
-            <!-- <redis.set configKey="RedisLocal">
+             <redis.set configKey="RedisLocal">
                 <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
                 <redisValue>{$ctx:ACCESS_TOKEN}</redisValue>
             </redis.set>
 
             <redis.expire configKey="RedisLocal">
                 <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
-                <redisSeconds>3600</redisSeconds>
-            </redis.expire> -->
-            <class name="com.example.token.TokenCacheMediator">
+                <redisSeconds>3540</redisSeconds>
+            </redis.expire> 
+            <!-- <class name="com.example.token.TokenCacheMediator">
                 <property name="action" value="SAVE"/>
-            </class>
+            </class> -->
             <property name="TOKEN_CACHE_STATUS" value="SAVED_IN_JAVA_CACHE" scope="default" type="STRING"/>
 
             <log category="INFO" logMessageID="false" logFullPayload="false">

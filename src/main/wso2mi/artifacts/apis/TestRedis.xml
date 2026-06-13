@@ -2,9 +2,51 @@
 <api context="/testredis" name="TestRedis" xmlns="http://ws.apache.org/ns/synapse">
     <resource methods="GET" uri-template="/">
         <inSequence>
-            <sequence key="testRidis"/>
+
+            <!-- 1. جلب الوقت المتبقي للتوكن من Redis -->
+            <redis.ttl configKey="RedisLocal">
+                <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
+            </redis.ttl>
+
+            <!-- 2. استخراج TTL من نتيجة Redis -->
+            <property name="TTL_TOKEN" scope="default" type="INTEGER" expression="//text()&quot;/"/>
+
+            <!-- <log category="INFO" logMessageID="false" logFullPayload="false">
+                <message>Redis TTL result</message>
+                <property name="TTL_TOKEN_SECONDS" expression="$ctx:TTL_TOKEN"/>
+            </log> -->
+            <!-- 3. جلب التوكن من Redis -->
+            <redis.get configKey="RedisLocal">
+                <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
+            </redis.get>
+            <!-- 4. استخراج التوكن من نتيجة Redis -->
+            <property name="ORACLE_ACCESS_TOKEN" scope="default" type="STRING"
+                      expression="json-eval($.output)"/>
+
+            <log category="INFO" logMessageID="false" logFullPayload="false">
+                <message>Redis token result</message>
+                <property name="ACCESS_TOKEN_LENGTH" expression="$ctx:ORACLE_ACCESS_TOKEN"/>
+                <property name="TTL_TOKEN_SECONDS" expression="$ctx:TTL_TOKEN"/>
+            </log>
+            <!-- 5. بناء response يرجع التوكن والوقت المتبقي -->
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                    "token": "$1",
+                    "ttl_seconds": "$2"
+                    }
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="$ctx:ORACLE_ACCESS_TOKEN"/>
+                    <arg evaluator="xml" expression="$ctx:TTL_TOKEN"/>
+                </args>
+            </payloadFactory>
+            <!-- <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+            <property name="ContentType" scope="axis2" type="STRING" value="application/json"/> -->
+
             <respond/>
         </inSequence>
+
         <faultSequence>
         </faultSequence>
     </resource>

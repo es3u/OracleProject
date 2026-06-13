@@ -1,73 +1,102 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sequence name="GetCacheToken" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
 
-    <!-- 1. حفظ body الأصلي حق EmployeeDetails قبل ما نطلب التوكن -->
+    <!-- 1. حفظ body الأصلي حق EmployeeDetails قبل ما نقرأ من Redis أو نطلب التوكن -->
     <property name="ORIGINAL_EMPLOYEE_BODY" expression="json-eval($)" scope="default" type="STRING"/>
 
-    <!-- 
-        <redis.get configKey="RedisLocal">
-            <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
-        </redis.get>
+    <!-- 2. جلب التوكن من Redis Cache -->
+    <redis.get configKey="RedisLocal">
+        <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
+    </redis.get>
 
-        <log category="INFO" logMessageID="false" logFullPayload="true">
-            <message>Redis GET token result</message>
+    <!-- 3. استخراج التوكن من نتيجة Redis -->
+    <property name="ACCESS_TOKEN" scope="default" type="STRING" expression="json-eval($.output)"/>
+
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>Redis GET token result</message>
+        <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+    </log>
+
+    <!-- 4. جلب الوقت المتبقي للتوكن من Redis -->
+    <redis.ttl configKey="RedisLocal">
+        <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
+    </redis.ttl>
+
+    <!-- 5. استخراج TTL من نتيجة Redis كرقم -->
+    <property name="TTL_TOKEN" scope="default" type="INTEGER" expression="//*[local-name()='text']/text()"/>
+
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>Redis token TTL result</message>
+        <property name="TTL_TOKEN_SECONDS" expression="$ctx:TTL_TOKEN"/>
+    </log>
+
+    <!-- Debug قبل الفلتر بدون طباعة التوكن كامل -->
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>Before token cache filter</message>
+        <property name="ACCESS_TOKEN_LENGTH_DEBUG" expression="string-length($ctx:ACCESS_TOKEN)"/>
+        <property name="TTL_TOKEN_VALUE_DEBUG" expression="$ctx:TTL_TOKEN"/>
+    </log>
+
+    <!-- 6. إذا التوكن موجود والـ TTL باقي له وقت نستخدمه، غير كذا نطلب توكن جديد -->
+<filter xpath="string-length(normalize-space($ctx:ACCESS_TOKEN)) &gt; 0 
+               and not(normalize-space($ctx:TTL_TOKEN) = '0')">
+    <then>
+        <property name="TOKEN_CACHE_STATUS" value="HIT" scope="default" type="STRING"/>
+
+        <log category="INFO" logMessageID="false" logFullPayload="false">
+            <message>Token cache HIT from Redis</message>
+            <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
+            <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+            <property name="TTL_TOKEN_SECONDS" expression="$ctx:TTL_TOKEN"/>
         </log>
-    -->
+    </then>
 
-    <!-- 2. التحقق من وجود التوكن في Java Cache -->
-    <class name="com.example.token.TokenCacheMediator">
-        <property name="action" value="CHECK"/>
-    </class>
+    <else>
+        <property name="TOKEN_CACHE_STATUS" value="MISS" scope="default" type="STRING"/>
 
-    <!-- 3. إذا التوكن موجود نستخدمه، وإذا غير موجود نجيب توكن جديد -->
-    <filter xpath="get-property('TOKEN_CACHE_STATUS') = 'HIT'">
-        <then>
+        <log category="INFO" logMessageID="false" logFullPayload="false">
+            <message>Token cache MISS. Fetching new token from Oracle</message>
+            <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
+            <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+            <property name="TTL_TOKEN_SECONDS" expression="$ctx:TTL_TOKEN"/>
+        </log>
 
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>Token cache HIT</message>
-                <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
-                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
-            </log>
+        <sequence key="GetOracleTokenSeq"/>
 
-        </then>
+        <property name="ACCESS_TOKEN" scope="default" type="STRING" expression="json-eval($.access_token)"/>
 
-        <else>
+        <log category="INFO" logMessageID="false" logFullPayload="false">
+            <message>New Oracle token extracted</message>
+            <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+        </log>
 
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>Token cache MISS. Fetching new token from Oracle</message>
-                <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
-            </log>
+        <redis.set configKey="RedisLocal">
+            <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
+            <redisValue>{$ctx:ACCESS_TOKEN}</redisValue>
+        </redis.set>
 
-            <!-- 4. استدعاء sequence الخاصة بجلب Oracle Token -->
-            <sequence key="GetOracleTokenSeq"/>
+        <redis.expire configKey="RedisLocal">
+            <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
+            <redisSeconds>3540</redisSeconds>
+        </redis.expire>
 
-            <!-- 5. استخراج access_token من response حق Oracle Token -->
-            <property name="ACCESS_TOKEN" scope="default" type="STRING" expression="json-eval($.access_token)"/>
+        <property name="TOKEN_CACHE_STATUS" value="SAVED_IN_REDIS" scope="default" type="STRING"/>
 
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>New Oracle token extracted</message>
-                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
-            </log>
+        <log category="INFO" logMessageID="false" logFullPayload="false">
+            <message>New Oracle token saved in Redis cache</message>
+            <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
+            <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+            <property name="REDIS_KEY" value="ORACLE_ACCESS_TOKEN"/>
+            <property name="REDIS_TTL_SECONDS" value="3540"/>
+        </log>
+    </else>
+</filter>
 
-            <!-- 6. حفظ التوكن في Java Cache -->
-            <class name="com.example.token.TokenCacheMediator">
-                <property name="action" value="SAVE"/>
-            </class>
-
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>New Oracle token saved in Java cache</message>
-                <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
-                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
-            </log>
-
-        </else>
-    </filter>
-
-    <!-- 7. تجهيز Authorization Header لاستدعاء Oracle API -->
+    <!-- 11. تجهيز Authorization Header لاستدعاء Oracle API -->
     <header name="Authorization" action="set" scope="transport"
             expression="fn:concat('Bearer ', $ctx:ACCESS_TOKEN)"/>
 
-    <!-- 8. إرجاع body الأصلي حق EmployeeDetails بعد الانتهاء من التوكن -->
+    <!-- 12. إرجاع body الأصلي حق EmployeeDetails بعد الانتهاء من Redis/token -->
     <payloadFactory media-type="json">
         <format>$1</format>
         <args>
@@ -79,14 +108,14 @@
     <property name="ContentType" scope="axis2" type="STRING" value="application/json"/>
 
     <log category="INFO" logMessageID="false" logFullPayload="true">
-        <message>Employee request body restored after token handling</message>
+        <message>Employee request body restored after Redis token handling</message>
     </log>
 
     <log category="INFO" logMessageID="false" logFullPayload="false">
         <message>Oracle Authorization header prepared</message>
         <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
         <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
+        <property name="TTL_TOKEN_SECONDS" expression="$ctx:TTL_TOKEN"/>
     </log>
 
 </sequence>
-
