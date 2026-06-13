@@ -12,10 +12,6 @@
     <!-- 3. استخراج التوكن من نتيجة Redis -->
     <property name="ACCESS_TOKEN" scope="default" type="STRING" expression="json-eval($.output)"/>
 
-    <log category="INFO" logMessageID="false" logFullPayload="false">
-        <message>Redis GET token result</message>
-        <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
-    </log>
 
     <!-- 4. جلب الوقت المتبقي للتوكن من Redis -->
     <redis.ttl configKey="RedisLocal">
@@ -25,10 +21,7 @@
     <!-- 5. استخراج TTL من نتيجة Redis كرقم -->
     <property name="TTL_TOKEN" scope="default" type="INTEGER" expression="//*[local-name()='text']/text()"/>
 
-    <log category="INFO" logMessageID="false" logFullPayload="false">
-        <message>Redis token TTL result</message>
-        <property name="TTL_TOKEN_SECONDS" expression="$ctx:TTL_TOKEN"/>
-    </log>
+   
 
     <!-- Debug قبل الفلتر بدون طباعة التوكن كامل -->
     <log category="INFO" logMessageID="false" logFullPayload="false">
