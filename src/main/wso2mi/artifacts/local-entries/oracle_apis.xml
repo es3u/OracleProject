@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<localEntry key="API3" xmlns="http://ws.apache.org/ns/synapse">
+<localEntry key="oracle_apis" xmlns="http://ws.apache.org/ns/synapse">
   <http.init>
     <connectionType>HTTPS</connectionType>
-    <baseUrl>https://ccc-test-oic-axiaaeu5u6zc-je.integration.me-jeddah-1.ocp.oraclecloud.com/ic/api/integration/v1/flows/rest/FETCH_MANAGE_TEAM_DETAIL_INT/3.0/getEmpdetails</baseUrl>
+    <baseUrl>https://ccc-test-oic-axiaaeu5u6zc-je.integration.me-jeddah-1.ocp.oraclecloud.com/ic/api/integration/v1/flows/rest/</baseUrl>
     <certificateConfigurable/>
     <authType>None</authType>
     <timeoutDuration/>
@@ -14,6 +14,6 @@
     <suspendInitialDuration>-1</suspendInitialDuration>
     <suspendProgressionFactor>1</suspendProgressionFactor>
     <suspendMaximumDuration/>
-    <name>API3</name>
+    <name>oracle_apis</name>
   </http.init>
 </localEntry>

@@ -6,11 +6,9 @@
             <log category="INFO" logMessageID="false" logFullPayload="false">
                 <message>EmployeeDetails request body before calling Oracle API</message>
             </log>
-
             <header name="Content-Type" value="application/json" scope="transport"/>
-
-            <http.post configKey="EmpDetailsAPI">
-                <relativePath></relativePath>
+            <http.post configKey="oracle_apis">
+                <relativePath>/FETCH_EMPLOYEE_ALLOWANC_INT/3.0/getEmpdetails</relativePath>
                 <headers>[]</headers>
                 <requestBodyType>JSON</requestBodyType>
                 <requestBodyJson>${payload}</requestBodyJson>
@@ -22,6 +20,7 @@
                 <responseVariable>employee_details_response</responseVariable>
                 <overwriteBody>true</overwriteBody>
             </http.post>
+
 
             <respond/>
         </inSequence>

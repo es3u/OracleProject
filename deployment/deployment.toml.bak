@@ -131,11 +131,4 @@ algorithm = "AES"
 # service_password = "admin"
 
 [secrets]
-oracle_auth = "rhQmLpfuAD9Ql7rnPZXBSDX6ZFtlSPF+8Pq8f3/hJLRZ6yIxzgGSL7wNNjysriLtjBldnRujg6mw4GhrhNQg0OLs1YH4KtUxZEf6tvLwcIVpSyAwWygoEJQLSPPb2ftC7FW7ofS89LEDF4KdczphR7S6rblbRBhGmL+84bxzAURyHZQ3KL7wZM+70X2oCcTen+1Yaf9Sgvy7jRtAflOVf7ZC9ebD3jphNiG/TsVaNiV3RdYdBXiI8PDjHkXgAnl6fDuGgL4sRk7XkZ7+dvATMPvhiGsJwBzsaHTSRXruzAL70NuTl7gwofeIUDVuOmbwAvRcO11MuO8IitmFHRkHUQ=="
-
-
-[[service_catalog]]
-apim_host = "https://localhost:9443"
-enable = true
-username = "admin"
-password = "admin"
+oracle_auth = "[Basic ZWEyOWM3ODYxMGNmNGYzZjg2ZmEwOWU5OTE0MDU0NjA6NWFlNzYwY2QtYmM4MS00YzIzLTk2MTQtZTRiYWMwZTM2ZWM4]"

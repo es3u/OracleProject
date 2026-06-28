@@ -1,13 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sequence name="GetOracleTokenSeq" xmlns="http://ws.apache.org/ns/synapse">
+<property name="ORACLE_AUTH"
+          expression="${wso2-vault('oracle_auth')}"
+          scope="default"
+          type="STRING"/>
 
-    <!-- 1. إضافة Basic Authorization Header الخاص بطلب Oracle Token -->
-    <header name="Authorization" action="set" scope="transport" value="Basic ZWEyOWM3ODYxMGNmNGYzZjg2ZmEwOWU5OTE0MDU0NjA6NWFlNzYwY2QtYmM4MS00YzIzLTk2MTQtZTRiYWMwZTM2ZWM4"/>
+<property name="ORACLE_AUTH_LENGTH"
+          expression="fn:string-length(get-property('ORACLE_AUTH'))"
+          scope="default"
+          type="STRING"/>
 
+<log category="INFO" logMessageID="false">
+    <message>Secure Vault Authorization loaded</message>
+    <property name="ORACLE_AUTH_LENGTH" expression="get-property('ORACLE_AUTH_LENGTH')"/>
+</log>
+
+<header name="Authorization"
+        action="set"
+        scope="transport"
+        expression="get-property('ORACLE_AUTH')"/>
     <!-- 2. منع تقطيع البيانات ومنع تكرار مسار الرابط  -->
     <property name="DISABLE_CHUNKING" value="true" scope="axis2" type="STRING"/>
     <property name="REST_URL_POSTFIX" scope="axis2" action="remove"/>
-
     <!-- 3. بناء البيانات كـ XML نظيف خالي من الـ Namespaces -->
     <payloadFactory media-type="xml">
         <format>
@@ -18,11 +32,9 @@
         </format>
         <args/>
     </payloadFactory>
-
     <!-- 4. توجيه WSO2 لتحويل الـ XML أعلاه إلى Form Data بشكل آلي -->
     <property name="messageType" scope="axis2" type="STRING" value="application/x-www-form-urlencoded"/>
     <property name="ContentType" scope="axis2" type="STRING" value="application/x-www-form-urlencoded"/>
-
     <!-- 5. لوق للتأكد أن body التوكن انبنى قبل استدعاء Oracle -->
     <log category="INFO" logMessageID="false" logFullPayload="false">
         <message> token body after payloadFactory and before http.post</message>
@@ -39,9 +51,13 @@
         <responseVariable>token_api_response</responseVariable>
         <overwriteBody>true</overwriteBody>
     </http.post>
+
+    <log category="INFO" logMessageID="false" logFullPayload="true">
+    <message>FULL Oracle token response</message>
+</log>
     <!-- 7. لوق للتأكد أن Oracle رجع response وفيه access_token -->
-    <log category="INFO" logMessageID="false" logFullPayload="false">
+    <!-- <log category="INFO" logMessageID="false" logFullPayload="false">
         <message>token response after Oracle token call</message>
-    </log>
+    </log> -->
 </sequence>
 

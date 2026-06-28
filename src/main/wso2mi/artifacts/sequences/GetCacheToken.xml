@@ -31,8 +31,7 @@
     </log>
 
     <!-- 6. إذا التوكن موجود والـ TTL باقي له وقت نستخدمه، غير كذا نطلب توكن جديد -->
-<filter xpath="string-length(normalize-space($ctx:ACCESS_TOKEN)) &gt; 0 
-               and not(normalize-space($ctx:TTL_TOKEN) = '0')">
+<filter xpath="string-length(normalize-space($ctx:ACCESS_TOKEN)) &gt; 0 ">
     <then>
         <property name="TOKEN_CACHE_STATUS" value="HIT" scope="default" type="STRING"/>
 
