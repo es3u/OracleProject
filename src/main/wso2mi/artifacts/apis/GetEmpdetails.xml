@@ -6,7 +6,6 @@
             <header name="content-type" action="set" scope="transport" value="application/json"/>
             <http.post configKey="oracle_apis">
                 <relativePath>/FETCH_EMPLOYEE_DETAILS_INT/3.0/getEmpdetails</relativePath>
-                <headers>[]</headers>
                 <requestBodyType>JSON</requestBodyType>
                 <requestBodyJson>${payload}</requestBodyJson>
                 <forceScAccepted>false</forceScAccepted>
@@ -17,6 +16,9 @@
                 <responseVariable>http_post_1</responseVariable>
                 <overwriteBody>true</overwriteBody>
             </http.post>
+
+
+
 
             <respond/>
         </inSequence>

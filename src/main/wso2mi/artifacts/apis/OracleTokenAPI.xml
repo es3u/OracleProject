@@ -3,36 +3,24 @@
     <resource methods="POST" uri-template="/">
         <inSequence>
             <sequence key="GetOracleTokenSeq"/>
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>Oracle token sequence completed successfully</message>
-            </log>
+            <redis.set configKey="RedisLocal">
+    <redisKey >ORACLE_ACCESS_TOKEN</redisKey>
+    <redisValue >{${properties.synapse.ACCESS_TOKEN}}</redisValue>
+</redis.set>
 
-            <property name="ACCESS_TOKEN" scope="default" type="STRING" expression="json-eval($.access_token)"/>
-
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>Oracle access token extracted from response</message>
-                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
-            </log>
-
-             <redis.set configKey="RedisLocal">
-                <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
-                <redisValue>{$ctx:ACCESS_TOKEN}</redisValue>
-            </redis.set>
 
             <redis.expire configKey="RedisLocal">
                 <redisKey>ORACLE_ACCESS_TOKEN</redisKey>
                 <redisSeconds>3540</redisSeconds>
             </redis.expire> 
-            <!-- <class name="com.example.token.TokenCacheMediator">
-                <property name="action" value="SAVE"/>
-            </class> -->
-            <property name="TOKEN_CACHE_STATUS" value="SAVED_IN_JAVA_CACHE" scope="default" type="STRING"/>
 
-            <log category="INFO" logMessageID="false" logFullPayload="false">
-                <message>Oracle token saved in Java cache successfully</message>
-                <property name="TOKEN_CACHE_STATUS" expression="$ctx:TOKEN_CACHE_STATUS"/>
-                <property name="ACCESS_TOKEN_LENGTH" expression="string-length($ctx:ACCESS_TOKEN)"/>
-            </log>
+
+    <log category="INFO" logMessageID="false" logFullPayload="true">
+        <message>BODY BEFORE RESPOND FROM TOKEN API</message>
+    </log>
+
+
+
 
             <respond/>
         </inSequence>

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<sequence name="testRidis" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
-<redis.ping configKey="RedisLocal"/>
-
-<log category="INFO" logMessageID="false" logFullPayload="true">
-    <message>Redis ping test completed</message>
-</log>
-</sequence>
